@@ -2,21 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Bibleai - Chat with Scripture Intelligence</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Additional mobile fixes */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                position: fixed;
+                z-index: 1000;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .menu-toggle {
+                display: block;
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 1001;
+                background: #d4a574;
+                border: none;
+                border-radius: 8px;
+                padding: 10px;
+                color: white;
+                cursor: pointer;
+            }
+            .chat-header {
+                padding-left: 60px;
+            }
+        }
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none;
+            }
+        }
+        .menu-toggle {
+            display: none;
+        }
+    </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle Button -->
+    <button class="menu-toggle" id="menu-toggle">☰</button>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h1 class="logo">Bibleai</h1>
             <p class="tagline">Scripture Intelligence</p>
         </div>
         
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item" id="profile-link">
+            <a href="profile.html" class="nav-item" id="profile-link">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
@@ -55,7 +100,10 @@
     <main class="main-content">
         <!-- Chat Header -->
         <header class="chat-header">
-            <!-- Model selector removed -->
+            <div class="header-left">
+                <button class="new-chat-btn" id="new-chat-btn">➕ New Chat</button>
+                <div class="session-info" id="session-info">Loading...</div>
+            </div>
         </header>
 
         <!-- Chat Messages Container -->
@@ -108,6 +156,37 @@
         </div>
     </div>
 
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        if (menuToggle) {
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
+        }
+        
+        // Close sidebar when clicking on a link (mobile)
+        const navLinks = document.querySelectorAll('.nav-item');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        });
+        
+        // Check if styles.css is loaded, if not, show fallback
+        function checkStyles() {
+            const stylesheets = document.styleSheets;
+            if (stylesheets.length === 0 || stylesheets[0].href === null) {
+                console.log('Styles might not be loaded properly on Android');
+            }
+        }
+        
+        setTimeout(checkStyles, 1000);
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
