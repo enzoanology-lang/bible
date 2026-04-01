@@ -1,0 +1,15 @@
+# render.yaml
+services:
+  - type: web
+    name: bibleai
+    runtime: static
+    buildCommand: echo "No build step required"
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache, must-revalidate
