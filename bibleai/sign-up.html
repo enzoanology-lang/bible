@@ -6,6 +6,8 @@
     <title>Sign Up - Bibleai</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Cloudflare Turnstile Script -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body class="auth-page">
     <div class="auth-container">
@@ -60,7 +62,12 @@
                     <small class="form-hint">Must be at least 8 characters</small>
                 </div>
 
-                <button type="submit" class="auth-btn primary" id="sign-up-btn">
+                <!-- Cloudflare Turnstile Widget -->
+                <div class="form-group">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACzSMcZjZWB8YGVr" data-callback="onTurnstileSuccess"></div>
+                </div>
+
+                <button type="submit" class="auth-btn primary" id="sign-up-btn" disabled>
                     <span>CREATE AN ACCOUNT</span>
                     <div class="loader" style="display: none;"></div>
                 </button>
@@ -95,5 +102,41 @@
     </div>
 
     <script src="auth.js"></script>
+    <script>
+        let turnstileVerified = false;
+
+        // Callback when Turnstile is successfully verified
+        window.onTurnstileSuccess = function(token) {
+            turnstileVerified = true;
+            const signupBtn = document.getElementById('sign-up-btn');
+            if (signupBtn) {
+                signupBtn.disabled = false;
+            }
+            console.log('Turnstile verified successfully');
+        };
+
+        // Override handleSignup to include Turnstile verification
+        const originalHandleSignup = window.handleSignup;
+        if (originalHandleSignup) {
+            window.handleSignup = async function(e) {
+                e.preventDefault();
+                
+                if (!turnstileVerified) {
+                    showError('Please complete the verification check');
+                    return;
+                }
+                
+                // Get the Turnstile token
+                const turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+                if (!turnstileToken) {
+                    showError('Verification failed. Please try again.');
+                    return;
+                }
+                
+                // Call the original signup function with the token
+                await originalHandleSignup(e, turnstileToken);
+            };
+        }
+    </script>
 </body>
 </html>
