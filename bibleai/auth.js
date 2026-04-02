@@ -1,19 +1,37 @@
 // Verify Turnstile token with your backend
 async function verifyTurnstileToken(token) {
+    console.log('Verifying Turnstile token:', token);
+    
+    if (!token) {
+        console.error('No Turnstile token provided');
+        return false;
+    }
+    
     try {
-        // Use your backend URL
-        const response = await fetch('https://your-backend-url.com/verify-turnstile', {
+        const response = await fetch('/api/verify-turnstile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ token })
+            body: JSON.stringify({ 
+                token: token  // Make sure this matches what your backend expects
+            })
         });
         
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            return false;
+        }
+        
         const data = await response.json();
-        return data.success;
+        console.log('Verification response:', data);
+        
+        return data.success === true;
     } catch (error) {
-        console.error('Turnstile verification error:', error);
+        console.error('Verification error:', error);
         return false;
     }
 }
@@ -39,25 +57,32 @@ async function handleLogin(e, turnstileToken) {
         return;
     }
 
-    // Show loading
+    // Make sure we have the Turnstile token
+    if (!turnstileToken) {
+        // Try to get the token from the Turnstile widget
+        const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]');
+        if (turnstileResponse) {
+            turnstileToken = turnstileResponse.value;
+        }
+    }
+    
+    if (!turnstileToken) {
+        showError('Please complete the security verification');
+        return;
+    }
+
     setLoading(elements.loginBtn, true);
 
     try {
-        // Verify Turnstile token with backend
-        if (turnstileToken) {
-            const isValid = await verifyTurnstileToken(turnstileToken);
-            if (!isValid) {
-                showError('Security verification failed. Please try again.');
-                setLoading(elements.loginBtn, false);
-                return;
-            }
-        } else {
-            showError('Please complete the security verification');
+        // Verify Turnstile token
+        const isValid = await verifyTurnstileToken(turnstileToken);
+        if (!isValid) {
+            showError('Security verification failed. Please try again.');
             setLoading(elements.loginBtn, false);
             return;
         }
 
-        // Your existing login logic here
+        // Your existing login logic
         await simulateAuthRequest({
             email,
             password,
@@ -78,9 +103,7 @@ async function handleLogin(e, turnstileToken) {
 
     } catch (error) {
         console.error('Login error:', error);
-        showError(error.message || 'Login failed. Please check your credentials and try again.');
+        showError(error.message || 'Login failed. Please try again.');
         setLoading(elements.loginBtn, false);
     }
 }
-
-// Similar for handleSignup...
